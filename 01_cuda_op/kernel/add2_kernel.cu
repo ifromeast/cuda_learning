@@ -8,11 +8,23 @@ __global__ void add2_kernel(float* c,
     }
 }
 
+// Kernel definition
+__global__ void MatAdd(float* c[n][n], float* a[n][n], float* b[n][n], int n
+)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if (i < n && j < n)
+        c[i][j] = a[i][j] + b[i][j];
+}
+
+
+
 void launch_add2(float* c,
                  const float* a,
                  const float* b,
                  int n) {
-    dim3 grid((n + 1023) / 1024);
-    dim3 block(1024);
-    add2_kernel<<<grid, block>>>(c, a, b, n);
+    dim3 grid(16,16);
+    dim3 block(n/grid.x, n/grid.y);
+    MatAdd<<<grid, block>>>(c, a, b, n);
 }

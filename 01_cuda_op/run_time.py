@@ -4,12 +4,13 @@ import numpy as np
 import torch
 
 # c = a + b (shape: [n])
-n = 1024 * 1024
-a = torch.rand(n, device="cuda:0")
-b = torch.rand(n, device="cuda:0")
-cuda_c = torch.rand(n, device="cuda:0")
+n = 1024
+a = torch.randn((n, n), device="cuda:0")
+b = torch.rand((n, n), device="cuda:0")
+cuda_c = torch.rand((n, n), device="cuda:0")
 
 ntest = 10
+
 
 def show_time(func):
     times = list()
@@ -24,8 +25,9 @@ def show_time(func):
         func()
         torch.cuda.synchronize(device="cuda:0")
         end_time = time.time()
-        times.append((end_time-start_time)*1e6)
+        times.append((end_time - start_time) * 1e6)
     return times, res
+
 
 def run_cuda():
     if args.compiler == 'jit':
@@ -39,9 +41,11 @@ def run_cuda():
 
     return cuda_c
 
+
 def run_torch():
     c = a + b
     return c.contiguous()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -50,6 +54,7 @@ if __name__ == "__main__":
 
     if args.compiler == 'jit':
         from torch.utils.cpp_extension import load
+
         cuda_module = load(name="add2",
                            extra_include_paths=["include"],
                            sources=["kernel/add2_ops.cpp", "kernel/add2_kernel.cu"],
