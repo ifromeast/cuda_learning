@@ -4,13 +4,12 @@ import numpy as np
 import torch
 
 # c = a + b (shape: [n])
-n = 1024
-a = torch.randn((n, n), device="cuda:0")
-b = torch.rand((n, n), device="cuda:0")
-cuda_c = torch.rand((n, n), device="cuda:0")
+n = 1024 * 1024
+a = torch.rand(n, device="cuda:0")
+b = torch.rand(n, device="cuda:0")
+cuda_c = torch.rand(n, device="cuda:0")
 
 ntest = 10
-
 
 def show_time(func):
     times = list()
@@ -25,9 +24,8 @@ def show_time(func):
         func()
         torch.cuda.synchronize(device="cuda:0")
         end_time = time.time()
-        times.append((end_time - start_time) * 1e6)
+        times.append((end_time-start_time)*1e6)
     return times, res
-
 
 def run_cuda():
     if args.compiler == 'jit':
@@ -41,11 +39,9 @@ def run_cuda():
 
     return cuda_c
 
-
 def run_torch():
-    c = a.add(b)
-    return c
-
+    c = a + b
+    return c.contiguous()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -54,10 +50,9 @@ if __name__ == "__main__":
 
     if args.compiler == 'jit':
         from torch.utils.cpp_extension import load
-
         cuda_module = load(name="add2",
                            extra_include_paths=["include"],
-                           sources=["kernel/add2_ops.cpp", "kernel/add2_kernel.cu"],
+                           sources=["pytorch/add2_ops.cpp", "kernel/add2_kernel.cu"],
                            verbose=True)
     elif args.compiler == 'setup':
         import add2
@@ -66,15 +61,13 @@ if __name__ == "__main__":
     else:
         raise Exception("Type of cuda compiler must be one of jit/setup/cmake.")
 
-    print("Running torch...")
-    torch_time, torch_res = show_time(run_torch)
-    print("Torch time:  {:.3f}us".format(np.mean(torch_time)))
-
     print("Running cuda...")
     cuda_time, cuda_res = show_time(run_cuda)
     print("Cuda time:  {:.3f}us".format(np.mean(cuda_time)))
 
-    print(cuda_res, cuda_res.shape)
-    print(torch_res, torch_res.shape)
-    print(torch.allclose(cuda_res, torch_res))
+    print("Running torch...")
+    torch_time, torch_res = show_time(run_torch)
+    print("Torch time:  {:.3f}us".format(np.mean(torch_time)))
+
+    torch.allclose(cuda_res, torch_res)
     print("Kernel test passed.")
