@@ -16,7 +16,7 @@ __global__ void MatAdd(float *c,
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
     if (i < n && j < n)
-        c[i][j] = a[i][j] + b[i][j];
+        c[i] = a[i] + b[i];
 }
 
 
