@@ -4,10 +4,10 @@ import numpy as np
 import torch
 
 # c = a + b (shape: [n])
-n = 1024 * 1024
-a = torch.rand(n, device="cuda:0")
-b = torch.rand(n, device="cuda:0")
-cuda_c = torch.rand(n, device="cuda:0")
+n = 1024
+a = torch.rand((n,n), device="cuda:0")
+b = torch.rand((n,n), device="cuda:0")
+cuda_c = torch.rand((n,n), device="cuda:0")
 
 ntest = 10
 
