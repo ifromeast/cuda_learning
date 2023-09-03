@@ -74,5 +74,7 @@ if __name__ == "__main__":
     cuda_time, cuda_res = show_time(run_cuda)
     print("Cuda time:  {:.3f}us".format(np.mean(cuda_time)))
 
+    print(cuda_res, cuda_res.shape)
+    print(torch_res, torch_res.shape)
     print(torch.allclose(cuda_res, torch_res))
     print("Kernel test passed.")
