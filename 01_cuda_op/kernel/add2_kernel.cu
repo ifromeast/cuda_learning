@@ -15,14 +15,14 @@ __global__ void MatAdd(float *c,
                        int n) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
-    if (i < n && j < n)
-        c[i][j] = a[i][j] + b[i][j];
+//     if (i < n && j < n)
+//         c[i][j] = a[i][j] + b[i][j];
 //         int i = threadIdx.x;
 //          int j = threadIdx.y;
-//          if (i < n && j < n)
-//          {
-//              c[i*n+j] = a[i*n+j] + b[i*n+j];
-//  }
+         if (i < n && j < n)
+         {
+             c[i*n+j] = a[i*n+j] + b[i*n+j];
+ }
 }
 
 
