@@ -43,8 +43,8 @@ def run_cuda():
 
 
 def run_torch():
-    c = a + b
-    return c.contiguous()
+    c = a.add(b)
+    return c
 
 
 if __name__ == "__main__":
