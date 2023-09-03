@@ -66,13 +66,13 @@ if __name__ == "__main__":
     else:
         raise Exception("Type of cuda compiler must be one of jit/setup/cmake.")
 
-    print("Running cuda...")
-    cuda_time, cuda_res = show_time(run_cuda)
-    print("Cuda time:  {:.3f}us".format(np.mean(cuda_time)))
-
     print("Running torch...")
     torch_time, torch_res = show_time(run_torch)
     print("Torch time:  {:.3f}us".format(np.mean(torch_time)))
+
+    print("Running cuda...")
+    cuda_time, cuda_res = show_time(run_cuda)
+    print("Cuda time:  {:.3f}us".format(np.mean(cuda_time)))
 
     torch.allclose(cuda_res, torch_res)
     print("Kernel test passed.")
