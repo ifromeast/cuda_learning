@@ -9,7 +9,7 @@ __global__ void add2_kernel(float* c,
 }
 
 // Kernel definition
-__global__ void MatAdd(float* c[n][n], float* a[n][n], float* b[n][n], int n
+__global__ void MatAdd(float* c, float* a, float* b, int n
 )
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
