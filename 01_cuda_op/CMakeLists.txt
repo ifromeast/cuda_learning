@@ -19,8 +19,13 @@ find_package(Torch REQUIRED)
 find_library(TORCH_PYTHON_LIBRARY torch_python PATHS "${TORCH_INSTALL_PREFIX}/lib")
 
 # modify to your own python path, or delete it if ok
+<<<<<<< HEAD
 include_directories(/home/powerop/.conda/envs/zzd-env/include/python3.10)
 include_directories(/data/share_user/zzd/tools/cuda_learning/01_cuda_op/include)
+=======
+include_directories(/usr/include/python3.7)
+include_directories(../include)
+>>>>>>> 63862e280612b3562f7b20544417a5142542c6fd
 
 set(SRCS ../kernel/add2_ops.cpp ../kernel/add2_kernel.cu)
 add_library(add2 SHARED ${SRCS})
