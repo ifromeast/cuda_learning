@@ -76,7 +76,7 @@ void __global__ reduce_shared(real *d_x, real *d_y)
 
     if (tid == 0)
     {
-        d_y[bid] = s_y[0];
+        d_y[blockIdx.x] = s_y[0];
     }
 }
 
