@@ -50,6 +50,7 @@ int main(void) {
     const int N_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
     const int K_list[15] = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
     
+    const int outer_repeat = 10, inner_repeat = 1;
     const int BM = 32, BN = 32;
     void (*gpuSgemm) (float *, float *, float *, const int, const int, const int) = naiveSgemm;
     const int TESTNUM = 15;
