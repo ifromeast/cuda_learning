@@ -6,7 +6,9 @@
 #define OFFSET(row, col, ld) ((row) * (ld) + (col))
 #define FLOAT4(pointer) (reinterpret_cast<float4*>(&(pointer))[0])
 
-float testError(void);
+float testError(
+    void (*gpuSgemm) (float *, float *, float *, const int, const int, const int),
+    dim3 gridDim, dim3 blockDim, const int M, const int N, const int K);
 float testPerformance(
     void (*gpuSgemm) (float *, float *, float *, const int, const int, const int),
     dim3 gridDim, dim3 blockDim, const int M, const int N, const int K, const int repeat);
@@ -94,23 +96,28 @@ __global__ void sgemm_V1(
 }
 
 int main(void) {
-    float max_error = testError();
-    printf("Max Error = %f\n", max_error);
-
     printf("\nKernal = sgemm_V1\n");
+    const int outer_repeat = 10, inner_repeat = 1;
+    const int BM = 128, BN = 128, TM = 8, TN = 8;
+    void (*gpuSgemm) (float *, float *, float *, const int, const int, const int) = sgemm_V1;
+
+    {
+        const int M = 512, N = 512, K = 512;
+        dim3 blockDim(BN / TN, BM / TM);
+        dim3 gridDim((N + BN - 1) / BN, (M + BM - 1) / BM);
+        float max_error = testError(gpuSgemm, gridDim, blockDim, M, N, K);
+        printf("Max Error = %f\n", max_error);
+    }
+
     const int M_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
     const int N_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
     const int K_list[15] = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
     
-    const int outer_repeat = 10, inner_repeat = 1;
-    const int BM = 32, BN = 32;
-    void (*gpuSgemm) (float *, float *, float *, const int, const int, const int) = sgemm_V1;
     const int TESTNUM = 15;
-
     for (int i = 0; i < TESTNUM; i++) {
         const int M = M_list[i], N = N_list[i], K = K_list[i];
 
-        dim3 blockDim(BN, BM);
+        dim3 blockDim(BN / TN, BM / TM);
         dim3 gridDim((N + BN - 1) / BN, (M + BM - 1) / BM);
 
         double max_sec = 0.0;
@@ -133,11 +140,9 @@ int main(void) {
 }
 
 
-float testError(void) {
-    const int BM = 32, BN = 32;
-    const int M = 512, N = 512, K = 512;
-    dim3 blockDim(BN, BM);
-    dim3 gridDim((N + BN - 1) / BN, (M + BM - 1) / BM);
+float testError(
+    void (*gpuSgemm) (float *, float *, float *, const int, const int, const int),
+    dim3 gridDim, dim3 blockDim, const int M, const int N, const int K) {
 
     size_t size_a = M * K * sizeof(float);
     size_t size_b = K * N * sizeof(float);
