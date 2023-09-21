@@ -64,7 +64,7 @@ int main(void) {
         h_b[i] = rand() / float(RAND_MAX);
     cudaMemset(d_c, 15, size_c);
 
-    naiveSgemm(h_a, h_b, h_c, M, N, K);
+    cpuSgemm(h_a, h_b, h_c, M, N, K);
 
     cudaMemcpy(d_a, h_a, size_a, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, h_b, size_b, cudaMemcpyHostToDevice);
