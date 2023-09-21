@@ -38,7 +38,7 @@ __global__ void naiveSgemm(
 }
 
 
-float main(void) {
+int main(void) {
     const int BM = 32, BN = 32;
     const int M = 512, N = 512, K = 512;
     dim3 blockDim(BN, BM);
@@ -68,7 +68,7 @@ float main(void) {
 
     cudaMemcpy(d_a, h_a, size_a, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, h_b, size_b, cudaMemcpyHostToDevice);
-    gpuSgemm<<<gridDim, blockDim>>>(d_a, d_b, d_c, M, N, K);
+    naiveSgemm<<<gridDim, blockDim>>>(d_a, d_b, d_c, M, N, K);
     cudaMemcpy(h_d_c, d_c, size_c, cudaMemcpyDeviceToHost);
 
     float max_error = 0.0;
@@ -88,6 +88,7 @@ float main(void) {
     cudaFree(d_c);
     free(h_d_c);
 
-    return max_error;
+    printf("max error = %f.\n", max_error);
+    return 0;
 }
 
