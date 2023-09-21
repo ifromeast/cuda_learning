@@ -6,6 +6,8 @@
 #define OFFSET(row, col, ld) ((row) * (ld) + (col))
 #define FLOAT4(pointer) (reinterpret_cast<float4*>(&(pointer))[0])
 
+float testError(void);
+
 void cpuSgemm(
     float *a, float *b, float *c, const int M, const int N, const int K) {
 
@@ -40,10 +42,9 @@ __global__ void naiveSgemm(
 int main(void) {
     float max_error = testError();
     printf("Max Error = %f\n", max_error);
-    const int M_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
-    const int N_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
-    // const int K_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
-    const int K_list[15] = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
+    // const int M_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
+    // const int N_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
+    // const int K_list[15] = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
     return 0;
 }
 
