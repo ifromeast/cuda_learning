@@ -45,13 +45,13 @@ __global__ void naiveSgemm(
 int main(void) {
     float max_error = testError();
     printf("Max Error = %f\n", max_error);
-    
+
     const int M_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
     const int N_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
     const int K_list[15] = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
     
+    const int BM = 32, BN = 32;
     void (*gpuSgemm) (float *, float *, float *, const int, const int, const int) = naiveSgemm;
-
     const int TESTNUM = 15;
 
     for (int i = 0; i < TESTNUM; i++) {
