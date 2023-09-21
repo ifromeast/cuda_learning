@@ -37,8 +37,20 @@ __global__ void naiveSgemm(
     }
 }
 
-
 int main(void) {
+    float max_error = testError();
+    printf("Max Error = %f\n", max_error);
+    const int M_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
+    const int N_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
+    // const int K_list[15] = {128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384};
+    const int K_list[15] = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
+    return 0;
+}
+
+
+
+
+float testError(void) {
     const int BM = 32, BN = 32;
     const int M = 512, N = 512, K = 512;
     dim3 blockDim(BN, BM);
@@ -88,7 +100,6 @@ int main(void) {
     cudaFree(d_c);
     free(h_d_c);
 
-    printf("max error = %f.\n", max_error);
-    return 0;
+    return max_error;
 }
 
