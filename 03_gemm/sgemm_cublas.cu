@@ -8,7 +8,7 @@
 #define FLOAT4(pointer) (reinterpret_cast<float4*>(&(pointer))[0])
 
 float testCublasError(const int M, const int N, const int K);
-float testCublasPerformance(const int M, const int N, const int K, const int repeat)
+float testCublasPerformance(const int M, const int N, const int K, const int repeat);
 
 void cpuSgemm(
     float *a, float *b, float *c, const int M, const int N, const int K) {
