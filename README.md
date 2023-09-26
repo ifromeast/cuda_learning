@@ -6,6 +6,6 @@ learning how CUDA works
 ## TODO list:
 - custom op [Done]
 - memory & reduction [Done]
-- gemm [WIP]
-- Transformer 
+- gemm [Done]
+- Transformer [WIP]
 
