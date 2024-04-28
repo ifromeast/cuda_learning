@@ -49,19 +49,19 @@ __global__ void sgemm_V1(
 
     float r_c[TM][TN] = {0.0};
 
-    int load_a_smem_m = tid >> 1;
-    int load_a_smem_k = (tid & 1) << 2;
-    int load_b_smem_k = tid >> 5;
-    int load_b_smem_n = (tid & 31) << 2;
+    int load_a_smem_m = tid >> 1;  // tid/2, row of s_a
+    int load_a_smem_k = (tid & 1) << 2;  // (tid % 2 == 0) ? 0 : 4, col of s_a
+    int load_b_smem_k = tid >> 5;   // tid/32, row of s_b
+    int load_b_smem_n = (tid & 31) << 2;  // (tid % 32) * 4, col of s_b
 
-    int load_a_gmem_m = by * BM + load_a_smem_m;
-    int load_b_gmem_n = bx * BN + load_b_smem_n;
+    int load_a_gmem_m = by * BM + load_a_smem_m;  // global row of a
+    int load_b_gmem_n = bx * BN + load_b_smem_n;  // global col of b
 
     for (int bk = 0; bk < (K + BK - 1) / BK; bk++) {
-        int load_a_gmem_k = bk * BK + load_a_smem_k;
+        int load_a_gmem_k = bk * BK + load_a_smem_k;   // global col of a
         int load_a_gmem_addr = OFFSET(load_a_gmem_m, load_a_gmem_k, K);
         FLOAT4(s_a[load_a_smem_m][load_a_smem_k]) = FLOAT4(a[load_a_gmem_addr]);
-        int load_b_gmem_k = bk * BK + load_b_smem_k;
+        int load_b_gmem_k = bk * BK + load_b_smem_k;   // global row of b
         int load_b_gmem_addr = OFFSET(load_b_gmem_k, load_b_gmem_n, N);
         FLOAT4(s_b[load_b_smem_k][load_b_smem_n]) = FLOAT4(b[load_b_gmem_addr]);
 
