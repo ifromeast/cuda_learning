@@ -126,7 +126,7 @@ __global__ void mean_kernel(float* mean, const float* inp, int N, int C, int blo
     shared[tid] = sum;
     __syncthreads();
     // reductions
-    for (int stride = block_size / 2; stride >= 1; stride /= 2) {
+    for (int stride = block_size >> 1; stride >= 1; stride >>= 1) {
         __syncthreads();
         if (tid < stride) {
             shared[tid] += shared[tid + stride];
