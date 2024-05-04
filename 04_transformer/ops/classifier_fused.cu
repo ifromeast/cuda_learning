@@ -5,7 +5,7 @@ much of a restriction: In pretraining, it is just a constant 1/batch_size tensor
 out the input prompt, but that is known in advance.
 
 Compile example:
-nvcc -O3 --use_fast_math classifier_fused.cu -o classifier_fused
+nvcc -O3 --use_fast_math classifier_fused.cu -lcublas -lcublasLt -o classifier_fused
 
 ./classifier_fused 1
 ./classifier_fused 2
