@@ -16,5 +16,8 @@ learning how CUDA works
         - [Cross Entropy 的 CUDA 实现](https://zhuanlan.zhihu.com/p/695594396)
         - [AdamW 优化器的 CUDA 实现](https://zhuanlan.zhihu.com/p/695611950)
         - [激活函数与残差连接的 CUDA 实现](https://zhuanlan.zhihu.com/p/695703671?)
+        - [embedding 层与 LM head 层的 CUDA 实现](https://zhuanlan.zhihu.com/p/695785781)
+    - 核心模块
+        - [self-attention 的 CUDA 实现及优化 (上)]()
     
 
