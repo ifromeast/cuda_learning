@@ -57,8 +57,8 @@ version 11 is kernel 10 skipping FP16/FP32 conversions (full FP16/BF16 network)
 
 // ----------------------------------------------------------------------------
 // Floating point precision setup
-typedef float floatX; // half or __nv_bfloat16 (or float)
-#define CUBLAS_LOWP CUDA_R_16F // CUDA_R_16F or CUDA_R_16BF (or CUDA_R_32F)
+typedef __nv_bfloat16 floatX; // half or __nv_bfloat16 (or float)
+#define CUBLAS_LOWP CUDA_R_16BF // CUDA_R_16F or CUDA_R_16BF (or CUDA_R_32F)
 // CUBLAS_COMPUTE_32F or CUBLAS_COMPUTE_16F (for CUDA_R_16F only, potentially slower?!)
 #define CUBLAS_LOWP_COMPUTE CUBLAS_COMPUTE_32F
 
@@ -82,6 +82,25 @@ static void* cudnn_workspace = NULL;
 #define checkCudaErr(err) assert((int)err == 0);
 #define checkCudnnErr(err) assert((int)err == 0);
 #endif // ENABLE_CUDNN
+// ----------------------------------------------------------------------------
+
+// older nvcc does not provide __ldcs and __stcs for bfloat16, despite these actually just being unsigned shorts.
+// we need to be careful here to only define our own versions if none already exist, otherwise the compiler will
+// complain.
+// If not, you easily get "no viable overload" (for sm52) and "function already exists" (sm_80)
+#if CUBLAS_LOWP == CUDA_R_16BF and __CUDACC_VER_MAJOR__ < 12 and not(__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
+__device__ floatX __ldcs(const floatX* address) {
+    unsigned short bf = __ldcs(reinterpret_cast<const unsigned short*>(address));
+    return __nv_bfloat16_raw{bf};
+}
+
+__device__ void __stcs(floatX* address, floatX value) {
+    __stcs(reinterpret_cast<unsigned short*>(address), ((__nv_bfloat16_raw)value).x);
+}
+#endif
+
+
+
 // ----------------------------------------------------------------------------
 // CPU code reference
 
@@ -958,8 +977,8 @@ __global__ void softmax_forward_kernel5_lowp(floatX* out, float inv_temperature,
     // divide the whole row by the sum
     for (int i = warp.thread_rank(); i <= own_pos; i += warp.size()) {
         // recalculation is faster than doing the round-trip through memory.
-        float ev = expf(inv_temperature * (__ldcs(x + i) - global_maxval));
-        __stcs(out + idx * T + i, ev * norm);
+        float ev = expf(inv_temperature * ((float)__ldcs(x + i) - global_maxval));
+        __stcs(out + idx * T + i, (floatX)(ev * norm));
     }
 }
 
