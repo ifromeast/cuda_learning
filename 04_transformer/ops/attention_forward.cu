@@ -6,7 +6,7 @@ You need cuDNN from: https://developer.nvidia.com/cudnn
 And the cuDNN front-end from: https://github.com/NVIDIA/cudnn-frontend/tree/main
 
 Compile example with cuDNN:
-nvcc -I /PATH/TO/cudnn-frontend/include -DENABLE_CUDNN -O3 --use_fast_math -lcublas -lcudnn attention_forward.cu -o attention_forward
+nvcc -I/PATH/TO/cudnn-frontend/include -DENABLE_CUDNN -O3 --use_fast_math -lcublas -lcublasLt -lcudnn attention_forward.cu -o attention_forward
 
 Compile example without cuDNN:
 nvcc -O3 --use_fast_math -lcublas attention_forward.cu -lcublasLt -o attention_forward
