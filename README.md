@@ -18,6 +18,7 @@ learning how CUDA works
         - [激活函数与残差连接的 CUDA 实现](https://zhuanlan.zhihu.com/p/695703671?)
         - [embedding 层与 LM head 层的 CUDA 实现](https://zhuanlan.zhihu.com/p/695785781)
     - 核心模块
-        - [self-attention 的 CUDA 实现及优化 (上)]()
+        - [self-attention 的 CUDA 实现及优化 (上)](https://zhuanlan.zhihu.com/p/695898274)
+        - [self-attention 的 CUDA 实现及优化 (下)](https://zhuanlan.zhihu.com/p/696197013)
     
 
