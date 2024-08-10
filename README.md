@@ -7,9 +7,9 @@ learning how CUDA works
     - [CUDA 编程基础](https://zhuanlan.zhihu.com/p/645330027)
 - memory & reduction [Done]
     - [GPU的内存体系及其优化指南](https://zhuanlan.zhihu.com/p/654027980)
-- gemm [Done]
+- Gemm [Done]
     - [通用矩阵乘法：从入门到熟练](https://zhuanlan.zhihu.com/p/657632577)
-- Transformer [WIP]
+- Transformer [Done]
     - 基础算子：
         - [LayerNorm 算子的 CUDA 实现与优化](https://zhuanlan.zhihu.com/p/694974164)
         - [SoftMax 算子的 CUDA 实现与优化](https://zhuanlan.zhihu.com/p/695307283)
@@ -21,4 +21,4 @@ learning how CUDA works
         - [self-attention 的 CUDA 实现及优化 (上)](https://zhuanlan.zhihu.com/p/695898274)
         - [self-attention 的 CUDA 实现及优化 (下)](https://zhuanlan.zhihu.com/p/696197013)
     
-
+- CUDA mode lectures [WIP]
