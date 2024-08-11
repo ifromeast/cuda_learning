@@ -50,7 +50,7 @@ prof.export_chrome_trace("logs/square.json")
 print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
 ```
 可以在`chrome://tracing/`中加载查看profile文件，如下：
-![alt text](image.png)
+![alt text](img/image.png)
 打印出来的结果如下所示
 ```
 -------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
@@ -73,7 +73,7 @@ with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA]) as prof:
 prof.export_chrome_trace("logs/trace.json")
 ```
 可以清楚看到，计算重复了10次，且第一次warmup的时间明显更长
-![alt text](image-1.png)
+![alt text](img/image-1.png)
 展开其中一条记录，可以看到所用的核函数及其所用时间
-![alt text](image-2.png)
+![alt text](img/image-2.png)
 
