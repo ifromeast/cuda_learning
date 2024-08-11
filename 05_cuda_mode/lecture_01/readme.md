@@ -3,6 +3,8 @@
 本节将通过一个简单的 element-wise 的例子（矩阵平方），来展示不同框架如何进行GPU编程，并分析其性能。
 
 ## 1. PyTorch 的实现与profile
+
+### 1.1 PyTorch 的原生实现
 - 代码：pytorch_square.py
 - 命令：python pytorch_square.py
 
@@ -76,4 +78,59 @@ prof.export_chrome_trace("logs/trace.json")
 ![alt text](img/image-1.png)
 展开其中一条记录，可以看到所用的核函数及其所用时间
 ![alt text](img/image-2.png)
+
+### 1.2 PyTorch 加载自定义算子
+PyTorch 提供了自定义算子的功能，可以方便地扩展 PyTorch 的功能。自定义算子可以通过 CUDA C、C++、Python 等语言实现，并使用 PyTorch 提供的 API 注册到 PyTorch 中。下面是一个简单的例子，演示如何使用 CUDA C 实现一个自定义算子，并将其注册到 PyTorch 中。
+
+首先，我们需要定义一个 CUDA CUDA 函数，该函数将实现我们的自定义算子, 如下所示：
+```
+# Define the CUDA kernel and C++ wrapper
+cuda_source = '''
+__global__ void square_matrix_kernel(const float* matrix, float* result, int width, int height) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < height && col < width) {
+        int idx = row * width + col;
+        result[idx] = matrix[idx] * matrix[idx];
+    }
+}
+
+torch::Tensor square_matrix(torch::Tensor matrix) {
+    const auto height = matrix.size(0);
+    const auto width = matrix.size(1);
+
+    auto result = torch::empty_like(matrix);
+
+    dim3 threads_per_block(16, 16);
+    dim3 number_of_blocks((width + threads_per_block.x - 1) / threads_per_block.x,
+                          (height + threads_per_block.y - 1) / threads_per_block.y);
+
+    square_matrix_kernel<<<number_of_blocks, threads_per_block>>>(
+        matrix.data_ptr<float>(), result.data_ptr<float>(), width, height);
+
+    return result;
+    }
+'''
+
+cpp_source = "torch::Tensor square_matrix(torch::Tensor matrix);"
+```
+然后，将CUDA代码编译成动态链接库，并将其导入到Python中，以便在PyTorch中使用。
+```
+# Load the CUDA kernel as a PyTorch extension
+square_matrix_extension = load_inline(
+    name='square_matrix_extension',
+    cpp_sources=cpp_source,
+    cuda_sources=cuda_source,
+    functions=['square_matrix'],
+    with_cuda=True,
+    extra_cuda_cflags=["-O2"],
+    build_directory='./load_inline_cuda',
+    # extra_cuda_cflags=['--expt-relaxed-constexpr']
+)
+
+a = torch.tensor([[1., 2., 3.], [4., 5., 6.]], device='cuda')
+print(square_matrix_extension.square_matrix(a))
+```
+然后即可按照正常的方式运行代码 `python pt_load_cuda.py `。
 
