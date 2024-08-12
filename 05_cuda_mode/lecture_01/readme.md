@@ -46,7 +46,7 @@ square 2 time used: 0.2685759961605072 ms
 square 3 time used: 0.2667199969291687 ms
 compiled square time used: 0.26764801144599915 ms
 ```
-#### PyTorch 的 profile 工具
+#### **PyTorch 的 profile 工具**
 接下来生成 profile 文件,以内置函数为例
 ```
 with torch.autograd.profiler.profile(use_cuda=True) as prof:
@@ -82,7 +82,7 @@ prof.export_chrome_trace("logs/trace.json")
 展开其中一条记录，可以看到所用的核函数及其所用时间
 ![alt text](img/image-2.png)
 
-#### ncu 分析工具的使用
+#### **ncu 分析工具的使用**
 profile 可以分析计算的过程与状态，如果要更加细致分析算子计算情况，则需要`ncu`工具。对于以上四种实现，可以通过ncu生成profile，如下：
 ```ncu -o pytorch --set full python pytorch_ncu.py```
 其中，`--set full`表示生成详细的profile，`-o pytorch`表示将profile保存到`pytorch`文件中。生成的profile文件可以通过`ncu`工具查看。
@@ -147,7 +147,7 @@ print(square_matrix_extension.square_matrix(a))
 
 ### 1.2 numba 与 triton
 
-#### numba
+#### **numba 及其用法**
 
 Numba是一个用于Python的即时编译器，可以将Python代码编译为机器代码，从而提高性能。Numba支持CUDA，可以将Python代码编译为CUDA代码，从而在GPU上运行。
 
@@ -192,7 +192,7 @@ result = d_result.copy_to_host()
 print(matrix)
 print(result)
 ```
-#### triton
+#### **triton 及其用法**
 triton是英伟达开发的一个用于GPU编程的库，它提供了一种更高级的抽象，使得编写GPU代码更加简单和高效。triton使用一种类似于CUDA C++的语法，但是它提供了一些额外的功能，如自动内存管理、自动并行化等。
 
 下面是一个使用triton的示例代码，它计算一个矩阵的平方：
@@ -248,4 +248,22 @@ y_torch = torch.square(x)
 assert torch.allclose(y_triton, y_torch), (y_triton, y_torch)
 ```
 数值上结果完全一致。
+接下来使用`ncu`与torch的4种方法相比较, 可见 triton 可自适应调整寄存器使用及 grid size 和 block size，从而获得最佳性能。
+![alt text](img/triton.png)
+我们还可以使用triton提供的对比工具比较以上几种方法的性能, 完整代码见`triton_vs_torch.py`：
+```
+def benchmark(M, N, provider):
+    x = torch.randn(M, N, device='cuda', dtype=torch.float32)
+    quantiles = [0.5, 0.2, 0.8]
+    if provider == 'torch-native':
+        ms, min_ms, max_ms = triton.testing.do_bench(lambda: torch.square(x), quantiles=quantiles)
+    if provider == 'triton':
+        ms, min_ms, max_ms = triton.testing.do_bench(lambda: triton_square(x), quantiles=quantiles)
+    if provider == 'torch-compile':
+        ms, min_ms, max_ms = triton.testing.do_bench(lambda: compiled_square(x), quantiles=quantiles)
+    gbps = lambda ms: 2 * x.nelement() * x.element_size() * 1e-9 / (ms * 1e-3)
+    return gbps(ms), gbps(max_ms), gbps(min_ms)
+```
+结果如下所示，在 N 不大时三种方式差异不大，但是当N过大时，triton 的性能会明显下降。
+![alt text](img/square_performance.png)
 
