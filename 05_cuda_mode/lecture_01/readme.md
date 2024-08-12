@@ -134,3 +134,107 @@ print(square_matrix_extension.square_matrix(a))
 ```
 然后即可按照正常的方式运行代码 `python pt_load_cuda.py `。
 
+### 1.2 numba 与 triton
+
+#### numba
+
+Numba是一个用于Python的即时编译器，可以将Python代码编译为机器代码，从而提高性能。Numba支持CUDA，可以将Python代码编译为CUDA代码，从而在GPU上运行。
+
+Numba的使用非常简单，只需要在Python代码中添加`cuda@jit`装饰器即可。例如，下面是一个使用Numba的CUDA代码示例：
+```
+# CUDA kernel
+@cuda.jit
+def square_matrix_kernel(matrix, result):
+    # Calculate the row and column index for each thread
+    row, col = cuda.grid(2)
+
+    # Check if the thread's indices are within the bounds of the matrix
+    if row < matrix.shape[0] and col < matrix.shape[1]:
+        # Perform the square operation
+        result[row, col] = matrix[row, col] ** 2
+```
+然后，可以在GPU上使用这个kernel，并运行`python numba_square.py`
+```
+# Example usage
+import numpy as np
+
+# Create a sample matrix
+matrix = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
+
+# Allocate memory on the device
+d_matrix = cuda.to_device(matrix)
+d_result = cuda.device_array(matrix.shape, dtype=np.float32)
+
+# Configure the blocks
+threads_per_block = (16, 16)
+blocks_per_grid_x = int(np.ceil(matrix.shape[0] / threads_per_block[0]))
+blocks_per_grid_y = int(np.ceil(matrix.shape[1] / threads_per_block[1]))
+blocks_per_grid = (blocks_per_grid_x, blocks_per_grid_y)
+
+# Launch the kernel
+square_matrix_kernel[blocks_per_grid, threads_per_block](d_matrix, d_result)
+
+# Copy the result back to the host
+result = d_result.copy_to_host()
+
+# Result is now in 'result' array
+print(matrix)
+print(result)
+```
+#### triton
+triton是英伟达开发的一个用于GPU编程的库，它提供了一种更高级的抽象，使得编写GPU代码更加简单和高效。triton使用一种类似于CUDA C++的语法，但是它提供了一些额外的功能，如自动内存管理、自动并行化等。
+
+下面是一个使用triton的示例代码，它计算一个矩阵的平方：
+```
+@triton.jit
+def square_kernel(output_ptr, input_ptr, input_row_stride, output_row_stride, n_cols, BLOCK_SIZE: tl.constexpr):
+    # The rows of the softmax are independent, so we parallelize across those
+    row_idx = tl.program_id(0)
+    # The stride represents how much we need to increase the pointer to advance 1 row
+    row_start_ptr = input_ptr + row_idx * input_row_stride
+    # The block size is the next power of two greater than n_cols, so we can fit each
+    # row in a single block
+    col_offsets = tl.arange(0, BLOCK_SIZE)
+    input_ptrs = row_start_ptr + col_offsets
+    # Load the row into SRAM, using a mask since BLOCK_SIZE may be > than n_cols
+    row = tl.load(input_ptrs, mask=col_offsets < n_cols, other=-float('inf'))
+
+    square_output = row * row
+    
+    # Write back output to DRAM
+    output_row_start_ptr = output_ptr + row_idx * output_row_stride
+    output_ptrs = output_row_start_ptr + col_offsets
+    tl.store(output_ptrs, square_output, mask=col_offsets < n_cols)
+```
+然后可以launch这个kernel：
+```
+def square(x):
+    n_rows, n_cols = x.shape
+    # The block size is the smallest power of two greater than the number of columns in `x`
+    BLOCK_SIZE = triton.next_power_of_2(n_cols)
+    # Another trick we can use is to ask the compiler to use more threads per row by
+    # increasing the number of warps (`num_warps`) over which each row is distributed.
+    # You will see in the next tutorial how to auto-tune this value in a more natural
+    # way so you don't have to come up with manual heuristics yourself.
+    num_warps = 4
+    if BLOCK_SIZE >= 2048:
+        num_warps = 8
+    if BLOCK_SIZE >= 4096:
+        num_warps = 16
+    # Allocate output
+    y = torch.empty_like(x)
+    # Enqueue kernel. The 1D launch grid is simple: we have one kernel instance per row o
+    # f the input matrix
+    square_kernel[(n_rows, )](y, x, x.stride(0), y.stride(0), n_cols, num_warps=num_warps, BLOCK_SIZE=BLOCK_SIZE,)
+    return y
+```
+使用以上函数并于 PyTorch 的 `torch.square` 函数比较：
+```
+torch.manual_seed(0)
+x = torch.randn(1823, 781, device='cuda')
+y_triton = square(x)
+y_torch = torch.square(x)
+assert torch.allclose(y_triton, y_torch), (y_triton, y_torch)
+```
+数值上结果完全一致。
+
