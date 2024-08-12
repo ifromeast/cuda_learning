@@ -29,9 +29,12 @@ def square_2(a):
 def square_3(a):
     return a ** 2
 
+compiled_square = torch.compile(torch.square)
+
 print(f"square time used: {time_pytorch_function(torch.square, b)} ms")
 print(f"square 2 time used: {time_pytorch_function(square_2, b)} ms")
 print(f"square 3 time used: {time_pytorch_function(square_3, b)} ms")
+print(f"compiled square time used: {time_pytorch_function(compiled_square, b)} ms")
 
 print("=============")
 print("Profiling torch.square")

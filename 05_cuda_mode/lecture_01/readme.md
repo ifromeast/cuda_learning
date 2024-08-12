@@ -8,13 +8,14 @@
 - 代码：pytorch_square.py
 - 命令：python pytorch_square.py
 
-PyTorch 可通过三种方式实现矩阵平方操作：内置函数、pow 函数、mul 函数。
+PyTorch 可通过三种方式实现矩阵平方操作：内置函数、pow 函数、mul 函数，以及 compile 特性。
 ```
 torch.square(a)
 def square_2(a):
     return a * a
 def square_3(a):
     return a ** 2
+compiled_square = torch.compile(torch.square)
 ```
 使用`cuda.Event`记录执行时间
 ```
@@ -43,8 +44,10 @@ print(f"square 3 time used: {time_pytorch_function(square_3, b)} ms")
 square time used: 0.26956799626350403 ms
 square 2 time used: 0.2685759961605072 ms
 square 3 time used: 0.2667199969291687 ms
+compiled square time used: 0.26764801144599915 ms
 ```
-接下来生成profile文件,以内置函数为例
+#### PyTorch 的 profile 工具
+接下来生成 profile 文件,以内置函数为例
 ```
 with torch.autograd.profiler.profile(use_cuda=True) as prof:
     torch.square(b)
@@ -78,6 +81,14 @@ prof.export_chrome_trace("logs/trace.json")
 ![alt text](img/image-1.png)
 展开其中一条记录，可以看到所用的核函数及其所用时间
 ![alt text](img/image-2.png)
+
+#### ncu 分析工具的使用
+profile 可以分析计算的过程与状态，如果要更加细致分析算子计算情况，则需要`ncu`工具。对于以上四种实现，可以通过ncu生成profile，如下：
+```ncu -o pytorch --set full python pytorch_ncu.py```
+其中，`--set full`表示生成详细的profile，`-o pytorch`表示将profile保存到`pytorch`文件中。生成的profile文件可以通过`ncu`工具查看。
+![4种方法的整体比较](img/torch_ncu.png)
+可以看到前3种方法用的都是`vectorized_elementwise_kernel`, 而第4种经过 compile 的使用的是 triton 的算子（其过程会在后续介绍），可见其显著差异。
+
 
 ### 1.2 PyTorch 加载自定义算子
 PyTorch 提供了自定义算子的功能，可以方便地扩展 PyTorch 的功能。自定义算子可以通过 CUDA C、C++、Python 等语言实现，并使用 PyTorch 提供的 API 注册到 PyTorch 中。下面是一个简单的例子，演示如何使用 CUDA C 实现一个自定义算子，并将其注册到 PyTorch 中。
