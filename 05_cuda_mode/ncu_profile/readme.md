@@ -113,4 +113,8 @@ ncu --set full -o *** python3 xxx.py
 - BlockSize：每个Block的线程数
 - Cycles：指令周期。
 
+最上部的`Result`默认显示的是`ID=0`的 kernel 运行的部分信息，包括GPU型号及频率。
 ![alt text](image-1.png)
+
+
+
