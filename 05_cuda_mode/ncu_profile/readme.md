@@ -99,6 +99,7 @@ ncu --set full -o *** python3 xxx.py
 使用 Nsight Compute 打开这个文件。
 
 
+### **Summary**
 从第一页看起，该页主要显示的是 summary， 其中序号 0-15 则是依次运算的kernel，其信息包括：
 - ID: 每个函数的唯一标识符。
 - Estimated Speedup: 估计的加速比，表示如果优化这个函数可能带来的速度提升。
@@ -106,15 +107,26 @@ ncu --set full -o *** python3 xxx.py
 - Demangled Name: 去掉修饰符的函数名称。
 - Duration: 函数执行时间（以ns为单位）。
 - Runtime Improvement: 估计的运行时间提示（以ns为单位），表示如果优化这个函数可能带来的运行时间提升。
-- Compute Throughput: 计算吞吐量。
-- Memory Throughput: 内存吞吐量。
+- Compute Throughput: 计算吞吐量。SM 吞吐量假设在 SMSPs 间负载平衡理想的情况下 （此吞吐量指标表示在所有子单元实例的经过周期内达到的峰值持续率的百分比）。
+- Memory Throughput: 内存吞吐量。计算内存管道吞吐量 （此吞吐量指标表示在所有子单元实例的经过周期内达到的峰值持续率的百分比）。
 - Registers: 每个线程使用的寄存器数量。
-- GridSize：kernel启动的网格大小
-- BlockSize：每个Block的线程数
+- GridSize：kernel启动的网格大小。
+- BlockSize：每个Block的线程数。
 - Cycles：指令周期。
 
 最上部的`Result`默认显示的是`ID=0`的 kernel 运行的部分信息，包括GPU型号及频率。
 ![alt text](image-1.png)
+从该图可以比较快速的得到一些信息：
+- Memory-bound：Memory Throughput 明显高于 Compute Throughput 的 kernel ，例如 `ID=6,11`
+- Compute-bound：Compute Throughput 明显高于 Memory Throughput 的 kernel ，例如 `ID=9,13`
+
+
+### **Details**
+
+- GPU Speed Of Light Throughput
+
+
+![alt text](image-2.png)
 
 
 
